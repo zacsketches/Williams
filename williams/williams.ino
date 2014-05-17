@@ -1,6 +1,6 @@
 #include <Servo.h>
 
-#define DEBUG_SERVO 0  //set to 1 for debug print to serial monitor
+#define DEBUG_SERVO 1  //set to 1 for debug print to serial monitor
 
 //from servo conf our right servo is centered at 91
 //from servo conf our left servo is centered at 87
@@ -33,14 +33,14 @@ const char back_right =    '3';
 
 void setup() {
   Serial.begin(57600);
-  
+
   servo_right.attach(servo_right_pin);
   servo_left.attach(servo_left_pin);
 
 }
 
 char read_serial() {
-   //read the serial monitor and return any incoming char
+  //read the serial monitor and return any incoming char
   char res = '0';
   if (Serial.available() > 0) {
     res = Serial.read();
@@ -53,56 +53,56 @@ char read_serial() {
 }
 
 void loop() {
-    
-    servo_right.write(r_val);
-    servo_left.write(l_val);
 
-    incoming_byte = read_serial();
-    
-    switch(incoming_byte){
-      case fwd_straight:
-          r_val = 3 * r_mult + servo_center + servo_right_offset;
-          l_val = 3 * l_mult + servo_center + servo_left_offset;
-        break;
-	  case fwd_left:
-	      r_val = 3 * r_mult + servo_center + servo_right_offset -rot_spd;
-   		  l_val = 3 * l_mult + servo_center + servo_left_offset  +rot_spd;
-		break;
-	  case fwd_right:
-		  r_val = 3 * r_mult + servo_center + servo_right_offset +rot_spd;
-   		  l_val = 3 * l_mult + servo_center + servo_left_offset  -rot_spd;
-		break;
-		
-	
-      case back_straight:
-          r_val = -3 * r_mult + servo_center + servo_right_offset;
-          l_val = -3 * l_mult + servo_center + servo_left_offset;
-        break;
-	  case back_left:
-	      r_val = 3 * r_mult + servo_center + servo_right_offset +rot_spd;
-   		  l_val = 3 * l_mult + servo_center + servo_left_offset  -rot_spd;
-		break;
-	  case back_right:
-		  r_val = 3 * r_mult + servo_center + servo_right_offset -rot_spd;
-   		  l_val = 3 * l_mult + servo_center + servo_left_offset  +rot_spd;
-		break;
+  servo_right.write(r_val);
+  servo_left.write(l_val);
 
-	
+  incoming_byte = read_serial();
 
-      case stop_all:
-          r_val = servo_center + servo_right_offset;
-          l_val = servo_center + servo_left_offset;
-        break;
-    }
+  switch(incoming_byte){
+  case fwd_straight:
+    r_val = 3 * r_mult + servo_center + servo_right_offset;
+    l_val = 3 * l_mult + servo_center + servo_left_offset;
+    break;
+  case fwd_left:
+    r_val = 3 * r_mult + servo_center + servo_right_offset -rot_spd;
+    l_val = 3 * l_mult + servo_center + servo_left_offset  -rot_spd;
+    break;
+  case fwd_right:
+    r_val = 3 * r_mult + servo_center + servo_right_offset +rot_spd;
+    l_val = 3 * l_mult + servo_center + servo_left_offset  +rot_spd;
+    break;
 
-    if(DEBUG_SERVO) {
-      Serial.print("left: ");
-      Serial.print(l_val);  
-      Serial.print("\t right: ");
-      Serial.println(r_val);  
-    }
 
-	delay(10);
+  case back_straight:
+    r_val = -3 * r_mult + servo_center + servo_right_offset;
+    l_val = -3 * l_mult + servo_center + servo_left_offset;
+    break;
+  case back_left:
+    r_val = -3 * r_mult + servo_center + servo_right_offset +rot_spd;
+    l_val = -3 * l_mult + servo_center + servo_left_offset  +rot_spd;
+    break;
+  case back_right:
+    r_val = -3 * r_mult + servo_center + servo_right_offset -rot_spd;
+    l_val = -3 * l_mult + servo_center + servo_left_offset  -rot_spd;
+    break;
+
+
+  case stop_all:
+    r_val = servo_center + servo_right_offset;
+    l_val = servo_center + servo_left_offset;
+    break;
+  }
+
+  if(DEBUG_SERVO) {
+    Serial.print("left: ");
+    Serial.print(l_val);  
+    Serial.print("\t right: ");
+    Serial.println(r_val);  
+  }
+
+  delay(100);
 }
+
 
 
