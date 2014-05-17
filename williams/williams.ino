@@ -15,6 +15,7 @@ const int servo_left_offset = -3;
 const int r_mult = -10;
 const int l_mult = 10;
 const int servo_center = 90;
+const int rot_spd = 10;
 
 int r_val = servo_center + servo_right_offset;
 int l_val = servo_center + servo_left_offset;
@@ -63,10 +64,31 @@ void loop() {
           r_val = 3 * r_mult + servo_center + servo_right_offset;
           l_val = 3 * l_mult + servo_center + servo_left_offset;
         break;
+	  case fwd_left:
+	      r_val = 3 * r_mult + servo_center + servo_right_offset -rot_spd;
+   		  l_val = 3 * l_mult + servo_center + servo_left_offset  +rot_spd;
+		break;
+	  case fwd_right:
+		  r_val = 3 * r_mult + servo_center + servo_right_offset +rot_spd;
+   		  l_val = 3 * l_mult + servo_center + servo_left_offset  -rot_spd;
+		break;
+		
+	
       case back_straight:
           r_val = -3 * r_mult + servo_center + servo_right_offset;
           l_val = -3 * l_mult + servo_center + servo_left_offset;
         break;
+	  case fwd_left:
+	      r_val = 3 * r_mult + servo_center + servo_right_offset +rot_spd;
+   		  l_val = 3 * l_mult + servo_center + servo_left_offset  -rot_spd;
+		break;
+	  case fwd_right:
+		  r_val = 3 * r_mult + servo_center + servo_right_offset -rot_spd;
+   		  l_val = 3 * l_mult + servo_center + servo_left_offset  +rot_spd;
+		break;
+
+	
+
       case stop_all:
           r_val = servo_center + servo_right_offset;
           l_val = servo_center + servo_left_offset;
