@@ -15,7 +15,7 @@ const int servo_left_offset = -3;
 const int r_mult = -10;
 const int l_mult = 10;
 const int servo_center = 90;
-const int rot_spd = 10;
+const int rot_spd = 15;
 
 int r_val = servo_center + servo_right_offset;
 int l_val = servo_center + servo_left_offset;
@@ -36,7 +36,10 @@ void setup() {
 
   servo_right.attach(servo_right_pin);
   servo_left.attach(servo_left_pin);
-
+  
+  //turn the smile on
+  analogWrite(6, 200);         
+  analogWrite(11, 200);         
 }
 
 char read_serial() {
@@ -50,6 +53,10 @@ char read_serial() {
     }
   }
   return res;  
+}
+
+void smile() {
+
 }
 
 void loop() {
@@ -92,6 +99,18 @@ void loop() {
     r_val = servo_center + servo_right_offset;
     l_val = servo_center + servo_left_offset;
     break;
+  case spin_left:
+    r_val =  3 * r_mult + servo_center + servo_right_offset;
+    l_val = -3 * l_mult + servo_center + servo_left_offset;
+    break;
+  case spin_right:
+    r_val = -3 * r_mult + servo_center + servo_right_offset;
+    l_val =  3 * l_mult + servo_center + servo_left_offset;
+    break;
+    
+    
+    
+    
   }
 
   if(DEBUG_SERVO) {
