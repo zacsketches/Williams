@@ -4,18 +4,29 @@ const int batt_pin = A0;
 const int analogInX = A1;  // Analog input pin that the potentiometer is attached to
 const int analogInY = A2;  // Analog input pin that the potentiometer is attached to
 const int analogInZ = A3;  // Analog input pin that the potentiometer is attached to
-const int system_led = 13;
+const int system_led = 13; // szstem led
 const int smile_led1 = 6;    // LED connected to digital pin 9
 const int smile_led2 = 11;    // LED connected to digital pin 11
+const int pir_in = 2;      // PIR sensor input
 
 void setup() {
   analogReference(EXTERNAL);
+  
   Serial.begin(57600); 
 }
 
 void loop() {
   static long time = 0;
   static long time_batt = 0;
+  static boolean batt_stat = HIGH;
+  
+  while (batt_stat == LOW) {
+    for ( int counter = 0; counter <= 3; counter++) {
+      digitalWrite(system_led, !digitalRead(system_led));
+      delay(200);
+    }
+    delay(2000);
+  }
   
   if (millis() > (time + 100)){
     time = millis();
@@ -27,6 +38,10 @@ void loop() {
     Serial.print("Batt_V=");
     Serial.print(batt_vol/100, 2);    
     Serial.print("\t");
+    if (batt_vol <= 340) {
+        Serial.println("Battery Low !");
+        batt_stat = LOW;
+    }
     time_batt = time;
     } else {Serial.print("\t"); Serial.print("\t");}
 
@@ -55,6 +70,8 @@ void loop() {
 //    Serial.print(dif);
 //    analogWrite(smile_led1, sum - dif );         
 //    analogWrite(smile_led2, sum + dif);         
+    Serial.print("\t");
+    Serial.print(digitalRead(pir_in));
     
     Serial.println();    
   }     
