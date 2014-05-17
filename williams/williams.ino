@@ -60,12 +60,12 @@ void loop() {
     
     switch(incoming_byte){
       case fwd_straight:
-          r_val = 3 * r_mult + servo_center;
-          l_val = 3 * l_mult + servo_center;
+          r_val = 3 * r_mult + servo_center + servo_right_offset;
+          l_val = 3 * l_mult + servo_center + servo_left_offset;
         break;
       case back_straight:
-          r_val = -3 * r_mult + servo_center;
-          l_val = -3 * l_mult + servo_center;
+          r_val = -3 * r_mult + servo_center + servo_right_offset;
+          l_val = -3 * l_mult + servo_center + serbo_left_offset;
         break;
       case stop_all:
           r_val = servo_center + servo_right_offset;
@@ -80,6 +80,7 @@ void loop() {
       Serial.println(l_val);  
     }
 
+	delay(10);
 }
 
 
