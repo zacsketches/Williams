@@ -19,9 +19,9 @@ void loop() {
   static boolean batt_stat = HIGH;
   
   while (batt_stat == LOW) {
-    for ( int counter = 0, counter < 3, counter++{
+    for ( int counter = 0; counter <= 3; counter++) {
       digitalWrite(system_led, !digitalRead(system_led));
-      delay(300);
+      delay(200);
     }
     delay(2000);
   }
@@ -37,7 +37,7 @@ void loop() {
     Serial.print(batt_vol/100, 2);    
     Serial.print("\t");
     if (batt_vol <= 330) {
-        Serial.print("Batt_V=");
+        Serial.println("Battery Low !");
         batt_stat = LOW;
     }
     time_batt = time;
