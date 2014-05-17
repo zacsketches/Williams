@@ -16,6 +16,15 @@ void setup() {
 void loop() {
   static long time = 0;
   static long time_batt = 0;
+  static boolean batt_stat = HIGH;
+  
+  while (batt_stat == LOW) {
+    for ( int counter = 0, counter < 3, counter++{
+      digitalWrite(system_led, !digitalRead(system_led));
+      delay(300);
+    }
+    delay(2000);
+  }
   
   if (millis() > (time + 100)){
     time = millis();
@@ -27,6 +36,10 @@ void loop() {
     Serial.print("Batt_V=");
     Serial.print(batt_vol/100, 2);    
     Serial.print("\t");
+    if (batt_vol <= 330) {
+        Serial.print("Batt_V=");
+        batt_stat = LOW;
+    }
     time_batt = time;
     } else {Serial.print("\t"); Serial.print("\t");}
 
