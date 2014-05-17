@@ -21,8 +21,8 @@
 
 Servo servo_right, servo_left;
 
-const int servo_right_pin = 9;
-const int servo_left_pin = 10;
+const int servo_right_pin = 10;
+const int servo_left_pin = 9;
 
 int left_val = 90;
 int right_val = 90;
@@ -72,5 +72,7 @@ void loop() {
         --right_val;
     }
   }
+  
+  delay(1);
 }
 
