@@ -78,11 +78,11 @@ void loop() {
           r_val = -3 * r_mult + servo_center + servo_right_offset;
           l_val = -3 * l_mult + servo_center + servo_left_offset;
         break;
-	  case fwd_left:
+	  case back_left:
 	      r_val = 3 * r_mult + servo_center + servo_right_offset +rot_spd;
    		  l_val = 3 * l_mult + servo_center + servo_left_offset  -rot_spd;
 		break;
-	  case fwd_right:
+	  case back_right:
 		  r_val = 3 * r_mult + servo_center + servo_right_offset -rot_spd;
    		  l_val = 3 * l_mult + servo_center + servo_left_offset  +rot_spd;
 		break;
