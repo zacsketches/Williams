@@ -1,6 +1,6 @@
 #include <Servo.h>
 
-#define DEBUG_SERVO 1  //set to 1 for debug print to serial monitor
+#define DEBUG_SERVO 0  //set to 1 for debug print to serial monitor
 
 //from servo conf our right servo is centered at 91
 //from servo conf our left servo is centered at 87
@@ -10,14 +10,14 @@ Servo servo_right, servo_left;
 const int servo_right_pin = 10;
 const int servo_left_pin = 9;
 
-const int servo_right_offset = 1;
+const int servo_right_offset = 2;
 const int servo_left_offset = -3;
-const int r_mult = 10;
-const int l_mult = -10;
+const int r_mult = -10;
+const int l_mult = 10;
 const int servo_center = 90;
 
-int r_val;
-int l_val;
+int r_val = servo_center + servo_right_offset;
+int l_val = servo_center + servo_left_offset;
 
 char incoming_byte =       '0';
 const char fwd_left =      '7';
@@ -65,7 +65,7 @@ void loop() {
         break;
       case back_straight:
           r_val = -3 * r_mult + servo_center + servo_right_offset;
-          l_val = -3 * l_mult + servo_center + serbo_left_offset;
+          l_val = -3 * l_mult + servo_center + servo_left_offset;
         break;
       case stop_all:
           r_val = servo_center + servo_right_offset;
@@ -76,8 +76,8 @@ void loop() {
     if(DEBUG_SERVO) {
       Serial.print("left: ");
       Serial.print(l_val);  
-      Serial.print("/right: ");
-      Serial.println(l_val);  
+      Serial.print("\t right: ");
+      Serial.println(r_val);  
     }
 
 	delay(10);
