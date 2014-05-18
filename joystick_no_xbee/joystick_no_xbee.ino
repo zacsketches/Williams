@@ -1,7 +1,8 @@
 #include <Esplora.h>
 
 /*  Test sketch to ensure the Esplora hordware is working in accordance 
-    the system description.  
+    the system description.  For commit history see repo at
+    https://github.com/zacsketches/Williams.git
     
     1. Establish Serial comms with the Arduino IDE 
     serial monitor to see values for the joystick inputs.
@@ -9,7 +10,7 @@
       
     2. Give RGB led feedback for the direction and intensity of the joystick
     command.
-    
+     -f4e52b3f2aef5df9102da435b6b7ca03f8c6dd37
 */
 
 int rgb[3];
