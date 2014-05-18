@@ -9,7 +9,7 @@
 
 void setup()
 {
-  Serial.begin(9600);       // initialize serial communication with your computer
+  Serial.begin(57600);       // initialize serial communication with your computer
 } 
 
 void loop()
