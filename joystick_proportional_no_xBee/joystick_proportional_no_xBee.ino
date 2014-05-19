@@ -11,7 +11,8 @@ int y_base[2];     //vector of motor servo commands { servo_left, servo_right }
 int dir_mod[2];    //directional modifiers to base values to implement steering
 int motor_cmd[2];  //vector sum of y_base and dir_mod
 
-const int max_y = 70;  //70/90 = max amount of servo power for y movement
+const int max_y = 70;  //70/90 = max amount of servo power for y_stick response
+const int max_x = 20;  //20/90 = max amount of servo power for x_stick response
 
 int* find_base(const int stick_y, int* y_base_vals) {
 //motor vals is int[2].  stick_y is read from joystick
@@ -34,32 +35,40 @@ int* find_base(const int stick_y, int* y_base_vals) {
 }
 
 int* find_dir_mods(const int stick_x, const int* y_mag, int* dir_mods){
+  //take the sign of the direction and speed up each wheel based on 
+  //proportional input from x stick
+  short lt_mod = 0;
+  short rt_mod = 0;
+  
   short lt_dir = 0;
   lt_dir = (y_mag[0] >=0 )  ? 1 : -1; 
   
   short rt_dir = 0;
   rt_dir = (y_mag[1] >=0 ) ? 1 : -1;
+    
+  if( stick_x >= 0 ) {    //left stick input then speed up rt wheel
+    rt_mod = map(abs(stick_x), 0, 512, 0, 20);    
+  } else {                //right stick input then speed up lt wheel
+    lt_mod = map(abs(stick_x), 0, 512, 0, 20);
+  }
+  
+  //adust for direction
+  lt_mod *= lt_dir;
+  rt_mod *= rt_dir;
+  
+  dir_mods[0] = lt_mod;
+  dir_mods[1] = rt_mod;
+  
+  return dir_mods;
 }
 
-void stick_print(const int x_val, const int y_val, const int* rgb_val,
-                 const int l_mag, const int r_mag) {
-  Serial.print("Joystick X: ");                // print a label for the X value
-  Serial.print(x_val);                        // print the X value
-  Serial.print("\tY: ");                       // print a tab character and a label for the Y value
-  Serial.print(y_val);                      // print the Y value  
-  Serial.print("\tl_mag: ");
-  Serial.print(l_mag);
-  Serial.print("\tr_mag: ");
-  Serial.print(r_mag);
-  Serial.print("\tRGB led: r,");                // print a label for the X value
-  Serial.print(rgb_val[0]);                        // print the X value
-  Serial.print("\tg,");                       // print a tab character and a label for the Y value
-  Serial.print(rgb_val[1]);                      // print the Y value  
-  Serial.print("\tb,");                       // print a tab character and a label for the Y value
-  Serial.println(rgb_val[2]);                      // print the Y value  
-
-
+int* find_mtr_vec(int* base, int* mods, int* mtr_cont) {
+  //all pointers are two element arrays
+  mtr_cont[0] = base[0] + mods[0];
+  mtr_cont[1] = base[1] + mods[1];
+  return mtr_cont;
 }
+
 
 void setup()
 {
@@ -76,8 +85,11 @@ void loop()
   
   find_base(y_val, y_base);
   find_dir_mods(x_val, y_base, dir_mod);
+  find_mtr_vec(y_base, dir_mod, motor_cmd);
   
-  stick_print(x_val, y_val, rgb, y_base[0], y_base[1]);
+  stick_print(x_val, y_val, y_base[0], y_base[1], 
+              dir_mod[0], dir_mod[1],
+              motor_cmd[0], motor_cmd[1]);
   
   delay(10);                                  // a short delay before moving again
 }
