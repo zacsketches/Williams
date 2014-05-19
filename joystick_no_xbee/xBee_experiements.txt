@@ -1,0 +1,34 @@
+Brief log of experiments based off "The Hands-on XBEE Lab Manual" by Jon Titus
+
+Experiment 1: communicate with an XBee over USB using X-CTU software from digi
+  a. got stuck because I didn't reset baud rate to 9600 (default for xBee).  One I 
+  made this change the rest of the experiment ran flawlessly
+
+Experiment 2: Changing module configuration params
+  a. using version 10EC on a model XB24
+  b. if the modem has been configured for a different baud rate, you must know this
+  to use the query/test button on the main page of the X-CTU window
+  
+Experiment 3: One-way digital input comms
+  a. configured for 9600baud, XMTR MY 1234, RCVR MY 5678
+  b. D0-DIO0 <3-DI> (Digital Input enabled)
+
+Experiemnt 4: Control an LED at the RCVR
+  a. The xBee module can send and receive direct I/O commands from its DIO pins.  By
+  configuring the XMTR DI0 to input and then tying the pin low/high it will txmit
+  this state to teh RCVR.  The RCVR D0 is set to HIGH by default, but will signal 0
+  when it rcvs that signal from teh XMTR.
+  b. Also the RCVR IA setting controls which addresses can send I/O commands.  This
+  experiment sets the value to FFFF.
+    1) by changing the value to 3456 (a non-existant transmitter in the network) the
+    two xBees still exchanged data, but 1234's I/O commands were no longer acted on.
+    2) by sending +++ ATIA1234 the RCVR was configured to listen to I/O commands 
+    ONLY from 1234.
+    
+Experiment 5: Send an anolog signal to the RCVR
+  a. configure D0 for ADC at the XMTR and send the analog voltage into D0
+  b. configure PWM0 for PWM.
+  c. The PWM output reflects the input level.  Use a low pass filter if actual analog
+  is needed at the output.  
+  d. NOTE: the PWM0 or PWM1 can also be set to Rcvd Signal Strength Indicator (RSSI)
+  and output a PWM signal proportional to signal strength.
