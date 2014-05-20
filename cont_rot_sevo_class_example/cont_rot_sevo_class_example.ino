@@ -13,7 +13,10 @@ public:
   }
   
   int center() { return ctr; }
+  void set_center(int center) { ctr = center; }
+  
   int rotation() { return rot; }
+  void set_rotation(int rotation) { rot = rotation; }
 };
 
 Cont_rot_servo rt;
