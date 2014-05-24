@@ -1,23 +1,18 @@
+#include <Motor_history.h>
 #include <Packet_vector.h>
 #include <Packet_parser.h>
 #include <Servo.h>
 
 
-#define DEBUG_MOTOR 0  //set to 1 for debug print to debug serial monitor
-
-#ifdef DEBUG_MOTOR
-	
-  #include <SoftwareSerial.h>   // RX, TX - only when using the UNO to 
-  SoftwareSerial debug(10,11);	// test data coming from the joystick
-
-#endif /* DEBUG_MOTOR */
+//#define DEBUG_CONFIG   //uncomment for debug print to debug serial monitor
+//#define DEBUG_MOTOR    //uncomment for debug print to debug serial monitor
 
 //from servo conf our right servo is centered at 91
 //from servo conf our left servo is centered at 87
 
 Packet_parser parser;
-char lt_cmd[3] = {'0', '9', '0'};  //lt_cmd and rt_cmd are updated by the parser and read
-char rt_cmd[3] = {'0', '9', '0'};  //by the motor_control function
+char lt_cmd[4] = {'0', '9', '0', '\0'};  //lt_cmd and rt_cmd are updated by the parser and read
+char rt_cmd[4] = {'0', '9', '0', '\0'};  //by the motor_control function
 
 Servo servo_right, servo_left;
 
@@ -29,10 +24,7 @@ const int servo_left_offset = -3;
 const int servo_center = 90;
 const int rot_spd = 15;
 
-/* not sure if I need this
-int r_val = servo_center + servo_right_offset;
-int l_val = servo_center + servo_left_offset;
-*/
+Motor_history history;
 
 void setup() {
   Serial.begin(57600);
@@ -41,24 +33,23 @@ void setup() {
   servo_left.attach(servo_left_pin);
   
   //instruct parser to monitor for motor control commands.
+  parser.add_packet(3, 'L');    //monitor L packet for a payload of three chars
   parser.add_packet(3, 'R');    //monitor R packet for a payload of three chars.
-  parser.add_packet(3, 'L');    //monitor L packet for a poaylot of three chars
 
-  #ifdef DEBUG_MOTOR
-    debug.begin(57600);
-  #endif /* DEBUG_MOTOR */
-
+  #ifdef DEBUG_CONFIG
+    parser.config();  
+    Serial.print("lt_mtr is: ");
+    Serial.print(lt_cmd);
+    Serial.print("\trt_mtr is: ");
+    Serial.print(rt_cmd);
+    Serial.println();
+  #endif /* DEBUG_CONFIG */
 }
 
-
 void loop() {
-
-  smile();
-  
+  smile(); 
   while(parser.listen());
-  
   motor_control();
-
   delay(10);
 }
 
@@ -69,14 +60,34 @@ void motor_control() {
   parser.query('R', rt_cmd);
   int mtr_rt = atoi(rt_cmd);
   
-  servo_left.write(mtr_lt);
-  servo_right.write(mtr_rt);
+  filter_motor_cmd(history, mtr_lt, mtr_rt);
+  
+  servo_left.write( history.left() );
+  servo_right.write( history.right() );
   
   #ifdef DEBUG_MOTOR
-    debug.print("lt_mtr is: ");
-    debug.print(mtr_lt);
-    debug.print("\trt_mtr is: ");
-    debug.println(mtr_rt);
+    Serial.print("lt string is: ");
+    Serial.print(lt_cmd);
+    Serial.print("\tlt int is: ");
+    Serial.print( history.left() );
+    Serial.print("\trt string is: ");
+    Serial.print(rt_cmd);
+    Serial.print("\trt int is: ");
+    Serial.print( history.right() );
+    Serial.println();
   #endif /* DEBUG_MOTOR */
 }
 
+void filter_motor_cmd(Motor_history& his, int raw_lt, int raw_rt){
+  //take the new info, filter it and update his
+  double sum_rt = his.sum_rt() + raw_rt;
+  double sum_lt = his.sum_lt()  + raw_lt;
+  
+  sum_rt = sum_rt / 4.0;
+  sum_rt = int(round(sum_rt));
+  
+  sum_lt = sum_lt / 4.0;
+  sum_lt = int(round(sum_lt));
+  
+  his.update(sum_lt, sum_rt);
+}

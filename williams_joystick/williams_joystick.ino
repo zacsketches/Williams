@@ -52,7 +52,8 @@ const int max_x = 20;  //max amount of servo power for x_stick response
 
 void setup()
 {
-  xBee.begin(9600);  
+//  xBee.begin(9600);  //for talking to the test arduino
+  xBee.begin(57600);
 } 
 
 void loop()
