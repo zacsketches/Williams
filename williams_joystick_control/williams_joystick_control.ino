@@ -1,4 +1,3 @@
-//#include <Motor_history.h>
 #include <Filter.h>
 #include <Packet_parser.h>
 #include <Servo.h>
@@ -24,7 +23,6 @@ const int servo_left_offset = -3;
 const int servo_center = 90;
 const int rot_spd = 15;
 
-//Motor_history history;
 //declare two Moving Average objects to smooth bad
 //reads from the Serial port listening for Joystick commands
 Moving_average lt_servo_cmd(4, 90);
@@ -64,7 +62,6 @@ void motor_control() {
   parser.query('R', rt_cmd);
   int mtr_rt = atoi(rt_cmd);
   
-  //filter_motor_cmd(history, mtr_lt, mtr_rt);
   mtr_lt = lt_servo_cmd.filter(mtr_lt);
   mtr_rt = rt_servo_cmd.filter(mtr_rt);
 
@@ -83,17 +80,3 @@ void motor_control() {
     Serial.println();
   #endif /* DEBUG_MOTOR */
 }
-
-// void filter_motor_cmd(Motor_history& his, int raw_lt, int raw_rt){
-//   //take the new info, filter it and update his
-//   double sum_rt = his.sum_rt() + raw_rt;
-//   double sum_lt = his.sum_lt()  + raw_lt;
-//   
-//   sum_rt = sum_rt / 4.0;
-//   sum_rt = int(round(sum_rt));
-//   
-//   sum_lt = sum_lt / 4.0;
-//   sum_lt = int(round(sum_lt));
-//   
-//   his.update(sum_lt, sum_rt);
-// }
