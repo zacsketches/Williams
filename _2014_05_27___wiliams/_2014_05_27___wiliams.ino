@@ -1,6 +1,6 @@
 /* LIBRARIES */
 #include <math.h>
-#include <FuzzyRule.h>
+#include <FuzzyRule.h>      //https://github.com/zerokol/eFLL.git
 #include <FuzzyComposition.h>
 #include <Fuzzy.h>
 #include <FuzzyRuleConsequent.h>
@@ -10,7 +10,8 @@
 #include <FuzzySet.h>
 #include <FuzzyRuleAntecedent.h>
 #include <Servo.h> 
-#include <Filter.h>
+#include <Filter.h>          //https://github.com/zacsketches/Filter.git
+#include <Packet_parser.h>   //https://github.com/zacsketches/Packet_parser.git
 
 /* INPUTS */
 const int batt_pin = A0;   // Analog input for battery power monitoring 
@@ -31,7 +32,11 @@ const int system_led = 13;   // system led
 /* GLOBAL VARIABLES */
 const int left_center = 88;
 const int right_center = 90;
-const int speed = 0;
+
+/* SERIAL COMM SUPPORT */
+Packet_parser parser;
+char speed_cmd[3] = {'0', '0', '\0'};  //speed from the controller, default to 0
+
 
 Fuzzy* fuzzy = new Fuzzy();
 Servo left, right;
@@ -61,6 +66,8 @@ void setup() {
   right.attach(servo_right);
   right.write(right_center);
   
+  parser.add_packet(2, 'S');  //packet to monitor speed.  Payload of 2 chars
+  
   Serial.begin(57600); 
 }
 
@@ -70,7 +77,11 @@ void loop() {
   static float batt_vol = 0;
   static boolean batt_stat = HIGH;
   static int output = 90;
-
+  static int speed = 0;
+  
+  while(parser.listen());
+  parser.query('S', speed_cmd);
+  speed = atoi(speed_cmd);
 
   int avrX = ma_AccX.filter (analogRead(analogInX));
   int avrY = ma_AccY.filter (analogRead(analogInY));
