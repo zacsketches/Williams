@@ -1,11 +1,11 @@
 void fuzzy_rules(){
   FuzzyInput* fuz_pitch = new FuzzyInput(1);
 
-  FuzzySet* positiv = new FuzzySet(-5, 40, 90, 120);
+  FuzzySet* positiv = new FuzzySet(pitch_center + 20, pitch_center + 45, 90, 90);
   fuz_pitch->addFuzzySet(positiv); 
-  FuzzySet* neutral = new FuzzySet(-65, -25, -5, 25);
+  FuzzySet* neutral = new FuzzySet(pitch_center - 40, pitch_center - 10, pitch_center + 10, pitch_center + 40);
   fuz_pitch->addFuzzySet(neutral); 
-  FuzzySet* negativ = new FuzzySet(-120, -90, -80, -35);
+  FuzzySet* negativ = new FuzzySet(-90, -90, pitch_center - 45, pitch_center - 20);
   fuz_pitch->addFuzzySet(negativ);
 
   fuzzy->addFuzzyInput(fuz_pitch);
