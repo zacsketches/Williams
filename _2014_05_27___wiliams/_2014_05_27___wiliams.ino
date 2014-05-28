@@ -112,8 +112,8 @@ void loop() {
   
   
   if (time > 1500){
-    left.write (left_center + (40/speed*output) + speed);
-    right.write(right_center - (40/speed*output) - speed);
+    left.write (left_center +  ((45 - abs(speed)) / 45 * output) + speed);
+    right.write(right_center - ((45 - abs(speed)) / 45 * output) - speed);
   }
 
   while (batt_stat == LOW) {
