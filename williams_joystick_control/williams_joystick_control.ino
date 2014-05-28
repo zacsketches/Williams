@@ -4,7 +4,7 @@
 
 
 //#define DEBUG_CONFIG   //uncomment for debug print to debug serial monitor
-//#define DEBUG_MOTOR    //uncomment for debug print to debug serial monitor
+#define DEBUG_MOTOR    //uncomment for debug print to debug serial monitor
 
 //from servo conf our right servo is centered at 91
 //from servo conf our left servo is centered at 87
@@ -49,7 +49,6 @@ void setup() {
 }
 
 void loop() {
-  smile(); 
   while(parser.listen());
   motor_control();
   delay(10);
