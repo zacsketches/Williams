@@ -29,13 +29,13 @@ const int smile_right = 11;  // LED connected to digital pin 11
 const int system_led = 13;   // system led
 
 /* GLOBAL VARIABLES */
-const int left_center = 85;
-const int right_center = 89;
-const int speed = 00;
+const int left_center = 88;
+const int right_center = 90;
+const int speed = 0;
 
 Fuzzy* fuzzy = new Fuzzy();
 Servo left, right;
-Moving_average ma_AccX(3), ma_AccY(3), ma_AccZ(3);
+Moving_average ma_AccX(12,500), ma_AccY(12, 500), ma_AccZ(12, 500);
 
 void setup() {
   analogReference(EXTERNAL);
@@ -69,6 +69,29 @@ void loop() {
   static long time_batt = 0;
   static float batt_vol = 0;
   static boolean batt_stat = HIGH;
+  static int output = 90;
+
+
+  int avrX = ma_AccX.filter (analogRead(analogInX));
+  int avrY = ma_AccY.filter (analogRead(analogInY));
+  int avrZ = ma_AccZ.filter (analogRead(analogInZ));
+   
+  float accX = float(map(avrX, 509-103, 509+103, -10000, 10000)) / 10000;
+  float accY = float(map(avrY, 506-103, 506+103, -10000, 10000)) / 10000;
+  float accZ = float(map(avrZ, 522-103, 522+103, -10000, 10000)) / 10000;
+
+  float pitch = RAD_TO_DEG * atan2(accY, sgn(accX) * sqrt((accX * accX)+(accZ * accZ)));
+  float roll  = -RAD_TO_DEG * atan2(accZ, sgn(accX) * sqrt((accX * accX)+(accY * accY)));
+  
+  fuzzy->setInput(1, pitch);
+  fuzzy->fuzzify();
+  output = fuzzy->defuzzify(1);
+  output -= 90;
+
+  if (time > 1500){
+    left.write (left_center + output + speed);
+    right.write(right_center - output - speed);
+  }
 
   while (batt_stat == LOW) {
     for ( int counter = 0; counter <= 5; counter++) {
@@ -78,26 +101,20 @@ void loop() {
     delay(2500);
   }
 
-  if (millis() > (time + 100)){
+  if ( millis() > (time + 100)){
     time = millis();
     Serial.print(time);    
     if (time_batt + 30000 <= time){
       batt_vol = float(map(analogRead(batt_pin), 0, 1023, 0, 496));
       if (batt_vol <= 340) {
-//        Serial.println("Battery Low !");
         batt_stat = LOW;
       }
       time_batt = time;
-    } 
+    }
+    
     Serial.print("\t");
     Serial.print(batt_vol/100, 2);    
 
-    int avrX = ma_AccX.filter (analogRead(analogInX));
-    
-    
-    float accX = float(map(avrX, 509-103, 509+103, -10000, 10000)) / 10000;
-    float accY = float(map(analogRead(analogInY), 506-103, 506+103, -10000, 10000)) / 10000;
-    float accZ = float(map(analogRead(analogInZ), 522-103, 522+103, -10000, 10000)) / 10000;
     Serial.print("\t");      
     Serial.print(accX, 3);    
     Serial.print("\t");      
@@ -105,30 +122,21 @@ void loop() {
     Serial.print("\t");      
     Serial.print(accZ, 3);    
 
-    float pitch = RAD_TO_DEG * atan2(accY, sgn(accX) * sqrt((accX * accX)+(accZ * accZ)));
-    float roll  = -RAD_TO_DEG * atan2(accZ, sgn(accX) * sqrt((accX * accX)+(accY * accY)));
     Serial.print("\t");  
     Serial.print(pitch, 2);
     Serial.print("\t");   
     Serial.print(roll, 2);
 
-    fuzzy->setInput(1, pitch);
-    fuzzy->fuzzify();
-    int output = fuzzy->defuzzify(1);
-    output -= 90;
     Serial.print("\t");
     Serial.print(output);
 
-    left.write (left_center + output + speed);
-    right.write(right_center - output - speed);
-
     Serial.println();    
-  }     
+  }
 }
 
 
 static inline int8_t sgn(float val) {
-  if (val < 0) return -1;
+//  if (val < 0) return -1;
   return 1;
 }
 
