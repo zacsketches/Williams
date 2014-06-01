@@ -13,7 +13,7 @@
 #include <Filter.h>          //https://github.com/zacsketches/Filter.git
 #include <Packet_parser.h>   //https://github.com/zacsketches/Packet_parser.git
 
-/* INPUTS */
+/* INPUT PINS */
 const int batt_pin = A0;   // Analog input for battery power monitoring 
 const int analogInX = A1;  // Analog input for accelerometer X axis
 const int analogInY = A2;  // Analog input for accelerometer Y axis
@@ -21,7 +21,7 @@ const int analogInZ = A3;  // Analog input for accelerometer Z axis
 const int pir_in = 2;      // Digital input for PIR sensor
 const int sonic_echo = 3;  // Digital input for sonic range finder
 
-/* OUTPUTS */
+/* OUTPUT PINS */
 const int sonic_trigger = 4; // trigger signal for sonic range finder (10 us signal required)
 const int servo_left = 9;    // Analog output for left servo motor (running foreward)
 const int servo_right = 10;  // Analog output for right servo motor (running backward)
@@ -33,15 +33,23 @@ const int system_led = 13;   // system led
 const float pitch_center = -15;
 const int left_center = 87;
 const int right_center = 91;
-Servo left, right;
+const int max_speed = 40;      //absolute value of max speed input to servo command
+const int max_stability = 45;  //absolute value of max stability input to servo command
+const int filter_len = 12;     //number of historical points in the moving averages
+const int batt_interval = 3000;//time in ms between battery reads
+const float min_batt = 350;      //batt charge in mv that the sketch shuts down 
 
 /* SERIAL COMM SUPPORT */
 Packet_parser parser;
-char ser_cmd[4] = {'0', '0', '0', '\0'};  
+char speed_cmd[4] = {'0', '0', '0', '\0'};    //buffer for storing speed command
 
 /* LIBRARY OBJECTS */
+Servo left, right;
 Fuzzy* fuzzy = new Fuzzy();
-Moving_average ma_AccX(12,500), ma_AccY(12, 500), ma_AccZ(12, 500);
+
+Moving_average ma_AccX(filter_len, 500), 
+               ma_AccY(filter_len, 500), 
+               ma_AccZ(filter_len, 500);
 
 void setup() {
   analogReference(EXTERNAL);
@@ -70,101 +78,47 @@ void setup() {
   Serial.begin(57600); 
 
   parser.add_packet(3, 'S');    //monitor S packet for a payload of three chars
+  
+  //fill the moving averages with data
+  for(int i = 0; i < filter_len; ++i) {
+    ma_AccX.filter (analogRead(analogInX));
+    ma_AccY.filter (analogRead(analogInY));
+    ma_AccZ.filter (analogRead(analogInZ)); 
+  }
+  
 }
 
 void loop() {
-  static long time = 0;
-  static long time_batt = 0;
-  static float batt_vol = 0;
-  static boolean batt_stat = HIGH;
-  static int output = 90;
   static int speed = 0;
+  static float pitch = 0.0;
+  static int fuzzy_output = 90;
+  static float batt_vol = 0;
+  static long batt_time = 0;
+  static long time = 0;
   
-  while(parser.listen());
-  parser.query('S', speed_cmd);
-  speed = atoi(speed_cmd);
-
-  int avrX = ma_AccX.filter (analogRead(analogInX));
-  int avrY = ma_AccY.filter (analogRead(analogInY));
-  int avrZ = ma_AccZ.filter (analogRead(analogInZ));
-   
-  float accX = float(map(avrX, 509-103, 509+103, -10000, 10000)) / 10000;
-  float accY = float(map(avrY, 506-103, 506+103, -10000, 10000)) / 10000;
-  float accZ = float(map(avrZ, 522-103, 522+103, -10000, 10000)) / 10000;
-
-  float pitch = RAD_TO_DEG * atan2(accY, sgn(accX) * sqrt((accX * accX)+(accZ * accZ)));
-  float roll  = -RAD_TO_DEG * atan2(accZ, sgn(accX) * sqrt((accX * accX)+(accY * accY)));
+  speed = set_speed(max_speed);
   
-  while(parser.listen());
-  parser.query('S', ser_cmd);
-  speed = atoi(ser_cmd);
+  pitch = set_pitch();
+
+//  control strategy does not implement a roll requirement yet  
+//  float roll  = -RAD_TO_DEG * atan2(accZ, sgn(accX) * sqrt((accX * accX)+(accY * accY)));
   
-  fuzzy->setInput(1, pitch);
-  fuzzy->fuzzify();
-  output = fuzzy->defuzzify(1);
-  output -= 90;
+  fuzzy_output = set_fuzzy(1, pitch, max_stability);
   
-  if (output < -45) 
-    {output = -45;
-  } else if (output > 45) 
-    {output = 45;}
+  write_servos(speed, max_speed, fuzzy_output);
+
+  long now = millis();
+  batt_vol = set_batt_vol(batt_vol, now, batt_time, batt_interval);  //Updates batt_time if req'd
   
-  if (speed < -40) 
-    {speed = -40;
-  } else if (speed > 40) 
-    {speed = 40;}
+  block_on_low_batt(batt_vol, min_batt); 
   
-  
-  if (time > 1500){
-    left.write (left_center + (40/speed*output) + speed);
-    right.write(right_center - (40/speed*output) - speed);
-  }
-
-  while (batt_stat == LOW) {
-    for (int counter = 0; counter <= 5; counter++) {
-      digitalWrite(system_led, !digitalRead(system_led));
-      delay(100);
-    }
-    delay(2500);
-  }
-
-  if ( millis() > (time + 100)){
-    time = millis();
-    Serial.print(time);    
-    if (time_batt + 30000 <= time){
-      batt_vol = float(map(analogRead(batt_pin), 0, 1023, 0, 496));
-      if (batt_vol <= 350) {
-        batt_stat = LOW;
-      }
-      time_batt = time;
-    }
-    
-    Serial.print("\t");
-    Serial.print(batt_vol/100, 2);    
-
-    Serial.print("\t");      
-    Serial.print(accX, 3);    
-    Serial.print("\t");      
-    Serial.print(accY, 3);    
-    Serial.print("\t");      
-    Serial.print(accZ, 3);    
-
-    Serial.print("\t");  
-    Serial.print(pitch, 2);
-    Serial.print("\t");   
-    Serial.print(roll, 2);
-
-    Serial.print("\t");
-    Serial.print(output);
-
-    Serial.println();    
-  }
+  if(now > (time + 100) ){
+    time = now;
+    print_status(now, batt_vol, pitch, fuzzy_output);
+  }  
 }
 
 
-static inline int8_t sgn(float val) {
-//  if (val < 0) return -1;
-  return 1;
-}
+
 
 

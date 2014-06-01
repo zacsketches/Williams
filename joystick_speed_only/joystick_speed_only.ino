@@ -1,5 +1,5 @@
 /*  
-    develop proportional motor commands for Williams based off joystick
+    develop a proportional speed command for Williams based off joystick
     input and send via software serial.
     
     - The control strategy here is for a two wheeled robot driven by
@@ -35,7 +35,7 @@ const char speed_header = 'S';
 //global variables set by the stick and read to find motor commands
 int rgb[3];        //values of red, green and blue for onboard LED
                    
-const int max_y = 40;  //max amount of servo power for y_stick response
+const int y_max = 40;  //max amount of servo power for y_stick response
 
 void setup()
 {
@@ -56,7 +56,7 @@ void loop()
   write_rgb(rgb);
   
   //transform joystick input into motor commands
-  speed = find_speed(y_val);
+  speed = find_speed(y_val, y_max);
   
   //send motor commands to Williams via software serial
   send_motor_cmds(speed);
@@ -66,14 +66,26 @@ void loop()
 
 void send_motor_cmds(const int spd) {
     
-  char spd_buf [3];
-  sprintf (spd_buf, "%03i", spd); 
+  char spd_buf [4];
+  sprintf (spd_buf, "%03d", spd); 
   
   xBee.print(packet_header);
   xBee.print(speed_header);
   xBee.print(spd_buf);
   delay(1);
   xBee.println();
+}
+
+int find_speed(const int stick_y, const int max_y) {
+//stick_y is read from joystick, max_y is the maximum allowable
+//return value for spd.
+
+  // mapped to plus or minus 100%
+  int base_mag = map(stick_y, -512, 512, 100, -100);  
+  
+  int spd = base_mag * max_y / 100;
+  
+  return spd;  
 }
 
 
